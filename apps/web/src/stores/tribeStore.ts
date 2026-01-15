@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { supabase } from '@/lib/supabase';
+import { supabase as supabaseClient } from '@/lib/supabase';
+const supabase = supabaseClient as any;
 import type { Tribe, TribeWithMembership, TribeMember } from '@hashtribe/shared/types';
 
 interface TribeState {
@@ -48,10 +49,10 @@ export const useTribeStore = create<TribeState>((set, get) => ({
                     .eq('user_id', userId);
 
                 const membershipMap = new Map(
-                    memberships?.map(m => [m.tribe_id, m.role]) || []
+                    memberships?.map((m: any) => [m.tribe_id, m.role]) || []
                 );
 
-                tribesWithMembership = tribes.map(tribe => ({
+                tribesWithMembership = tribes.map((tribe: any) => ({
                     ...tribe,
                     member_count: tribe.tribe_members?.[0]?.count || 0,
                     is_member: membershipMap.has(tribe.id),

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { supabase } from '@/lib/supabase';
+import { supabase as supabaseClient } from '@/lib/supabase';
+const supabase = supabaseClient as any;
 import type { User, Session } from '@supabase/supabase-js';
 import type { UserProfile } from '@hashtribe/shared/types';
 
@@ -51,7 +52,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             }
 
             // Listen for auth changes
-            supabase.auth.onAuthStateChange(async (event, session) => {
+            supabase.auth.onAuthStateChange(async (event: any, session: any) => {
                 console.log('Auth state changed:', event);
 
                 if (session?.user) {

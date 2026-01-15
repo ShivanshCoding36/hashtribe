@@ -1,10 +1,16 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import clsx from 'clsx';
 
 export function Navbar() {
     const { user, profile, signOut } = useAuthStore();
     const location = useLocation();
+    const navigate = useNavigate();
+
+    const handleSignOut = async () => {
+        await signOut();
+        navigate('/login');
+    };
 
     const isActive = (path: string) => location.pathname === path;
 
@@ -61,30 +67,30 @@ export function Navbar() {
 
                     {/* User Menu */}
                     <div className="flex items-center space-x-4">
-                        {user && profile ? (
+                        {user ? (
                             <>
                                 <Link
-                                    to={`/profile/${profile.username}`}
+                                    to={profile ? `/profile/${profile.username}` : '#'}
                                     className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
                                 >
                                     <img
-                                        src={profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}`}
-                                        alt={profile.username}
+                                        src={profile?.avatar_url || `https://ui-avatars.com/api/?name=${user.email || 'User'}&background=random`}
+                                        alt={profile?.username || 'User'}
                                         className="w-8 h-8 rounded-full border-2 border-charcoal-700"
                                     />
                                     <span className="hidden md:block text-sm font-medium text-grey-200">
-                                        {profile.display_name || profile.username}
+                                        {profile?.display_name || profile?.username || user.email?.split('@')[0] || 'User'}
                                     </span>
                                 </Link>
                                 <button
-                                    onClick={() => signOut()}
-                                    className="btn-ghost text-sm"
+                                    onClick={handleSignOut}
+                                    className="btn-ghost text-sm text-grey-400 hover:text-white transition-colors"
                                 >
                                     Sign Out
                                 </button>
                             </>
                         ) : (
-                            <Link to="/login" className="btn-primary">
+                            <Link to="/login" className="px-4 py-2 bg-white text-black font-semibold rounded-lg hover:bg-grey-200 transition-colors">
                                 Sign In
                             </Link>
                         )}

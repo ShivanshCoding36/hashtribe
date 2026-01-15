@@ -13,6 +13,8 @@ interface AuthState {
     // Actions
     initialize: () => Promise<void>;
     signInWithGitHub: () => Promise<void>;
+    signInWithEmail: (email: string, password: string) => Promise<void>;
+    signUpWithEmail: (email: string, password: string, username: string, fullName: string) => Promise<void>;
     signOut: () => Promise<void>;
     updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
 }
@@ -60,27 +62,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                         .eq('id', session.user.id)
                         .single();
 
-                    // If profile doesn't exist, create it from GitHub data
+                    // If profile doesn't exist, it should be created by the database trigger
+                    // We can just refetch if needed or wait for the subscription (realtime) if we implemented it
                     if (!profile && event === 'SIGNED_IN') {
-                        const githubData = session.user.user_metadata;
+                        // Retry fetching profile after a brief delay in case trigger is slow
+                        setTimeout(async () => {
+                            const { data: retryProfile } = await supabase
+                                .from('users')
+                                .select('*')
+                                .eq('id', session.user.id)
+                                .single();
 
-                        const { data: newProfile, error } = await supabase
-                            .from('users')
-                            .insert({
-                                id: session.user.id,
-                                username: githubData.user_name || githubData.preferred_username,
-                                display_name: githubData.full_name || githubData.name,
-                                avatar_url: githubData.avatar_url,
-                                github_username: githubData.user_name || githubData.preferred_username,
-                                github_id: githubData.provider_id,
-                                bio: githubData.bio || null,
-                            })
-                            .select()
-                            .single();
-
-                        if (!error) {
-                            profile = newProfile;
-                        }
+                            if (retryProfile) {
+                                set({ profile: retryProfile });
+                            }
+                        }, 1000);
                     }
 
                     set({
@@ -116,6 +112,40 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         if (error) {
             console.error('Error signing in with GitHub:', error);
             throw error;
+        }
+    },
+
+    signInWithEmail: async (email, password) => {
+        const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
+
+        if (error) {
+            console.error('Error signing in with email:', error);
+            throw error;
+        }
+    },
+
+    signUpWithEmail: async (email, password, username, fullName) => {
+        const { data, error: signUpError } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                data: {
+                    username,
+                    full_name: fullName,
+                },
+            },
+        });
+
+        if (signUpError) {
+            console.error('Error signing up:', signUpError);
+            throw signUpError;
+        }
+
+        if (data.user) {
+            // User created in Auth. Database Trigger 'on_auth_user_created' should create the public profile.
         }
     },
 

@@ -6,14 +6,16 @@ import logoDark from '@/components/assets/logo_dark.png';
 import googleIcon from '@/components/assets/playstore.svg';
 import nfksIcon from '@/components/assets/nfks_logo.png';
 
-export function LoginPage() {
-    const { user, signInWithGitHub, signInWithEmail, loading } = useAuthStore();
+export function SignupPage() {
+    const { user, signInWithGitHub, signUpWithEmail, loading } = useAuthStore();
     const navigate = useNavigate();
     const location = useLocation();
 
+    const [name, setName] = useState('');
+    const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [emailLoading, setEmailLoading] = useState(false);
+    const [signupLoading, setSignupLoading] = useState(false);
     const [error, setError] = useState('');
 
     const from = (location.state as any)?.from?.pathname || '/tribes';
@@ -32,30 +34,40 @@ export function LoginPage() {
         }
     };
 
-    const handleEmailLogin = async (e: React.FormEvent) => {
+    const handleEmailSignup = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!email || !password) return;
+        if (!name || !username || !email || !password) return;
 
         setError('');
-        setEmailLoading(true);
+        setSignupLoading(true);
 
         try {
-            await signInWithEmail(email, password);
-            setEmailLoading(false);
-            // Navigation handled by useEffect
+            await signUpWithEmail(email, password, username, name);
+            setSignupLoading(false);
+
+            // If not automatically redirected by useEffect (meaning no session yet), 
+            // it means email confirmation is required.
+            if (!user) {
+                setError('Account created! Please check your email to verify your account.');
+                // clear form?
+                setName('');
+                setUsername('');
+                setEmail('');
+                setPassword('');
+            }
         } catch (err: any) {
-            console.error('Login error:', err);
-            setError(err.message || 'Failed to login. Please check your credentials.');
-            setEmailLoading(false);
+            console.error('Signup error:', err);
+            setError(err.message || 'Failed to sign up. Please try again.');
+            setSignupLoading(false);
         }
     };
 
     return (
         <div className="min-h-screen flex bg-black">
-            {/* Left Side - Login Form */}
+            {/* Left Side - Signup Form */}
             <div className="w-full md:w-1/2 flex items-center justify-center p-4 md:p-8 relative z-10">
                 <div className="w-full max-w-md">
-                    {/* Logo - Vertically stacked with Login */}
+                    {/* Logo - Vertically stacked with Header */}
                     <div className="mb-12">
                         {/* Logo */}
                         <div className="mb-8 flex items-center justify-center">
@@ -63,23 +75,49 @@ export function LoginPage() {
                             <span className="text-white text-4xl font-bold -ml-5">HashTribe</span>
                         </div>
 
-                        {/* Login Header */}
+                        {/* Signup Header */}
                         <div>
                             <h1 className="text-3xl font-bold text-white mb-3">
-                                Login
+                                Create an account
                             </h1>
                             <p className="text-grey-400 text-base">
-                                Step into the world of developer collaboration and verified credibility.
+                                Join the world of developer collaboration and verified credibility.
                             </p>
                         </div>
                     </div>
 
-                    <form onSubmit={handleEmailLogin}>
+                    <form onSubmit={handleEmailSignup}>
                         {error && (
                             <div className="mb-4 p-3 bg-red-900/50 border border-red-800 text-red-200 text-sm rounded-lg">
                                 {error}
                             </div>
                         )}
+                        {/* Name Input */}
+                        <div className="mb-4">
+                            <label className="block text-grey-400 text-sm mb-2">Full Name</label>
+                            <input
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="John Doe"
+                                className="w-full bg-charcoal-900 border border-grey-800 text-white rounded-lg px-4 py-3 focus:outline-none focus:border-grey-600 transition-colors placeholder-grey-600"
+                                required
+                            />
+                        </div>
+
+                        {/* Username Input */}
+                        <div className="mb-4">
+                            <label className="block text-grey-400 text-sm mb-2">Username</label>
+                            <input
+                                type="text"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                placeholder="johndoe"
+                                className="w-full bg-charcoal-900 border border-grey-800 text-white rounded-lg px-4 py-3 focus:outline-none focus:border-grey-600 transition-colors placeholder-grey-600"
+                                required
+                            />
+                        </div>
+
                         {/* Email Input */}
                         <div className="mb-4">
                             <label className="block text-grey-400 text-sm mb-2">Email</label>
@@ -94,42 +132,31 @@ export function LoginPage() {
                         </div>
 
                         {/* Password Input */}
-                        <div className="mb-4">
+                        <div className="mb-6">
                             <label className="block text-grey-400 text-sm mb-2">Password</label>
                             <input
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                placeholder="Enter your password"
+                                placeholder="Create a password"
                                 className="w-full bg-charcoal-900 border border-grey-800 text-white rounded-lg px-4 py-3 focus:outline-none focus:border-grey-600 transition-colors placeholder-grey-600"
                                 required
                             />
                         </div>
 
-                        {/* Remember & Forgot */}
-                        <div className="flex items-center justify-between mb-6">
-                            <label className="flex items-center cursor-pointer">
-                                <input type="checkbox" className="w-4 h-4 rounded border-grey-700 bg-charcoal-900 text-white focus:ring-0 focus:ring-offset-0" />
-                                <span className="ml-2 text-sm text-grey-400 select-none">Remember me?</span>
-                            </label>
-                            <a href="#" className="text-sm text-grey-400 hover:text-white transition-colors">
-                                Forgot password?
-                            </a>
-                        </div>
-
-                        {/* Login Button */}
+                        {/* Signup Button */}
                         <button
                             type="submit"
-                            disabled={emailLoading || loading}
+                            disabled={signupLoading || loading}
                             className="w-full bg-white hover:bg-grey-200 text-black font-bold py-3.5 px-4 rounded-lg mb-6 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                         >
-                            {emailLoading ? (
+                            {signupLoading ? (
                                 <svg className="animate-spin h-5 w-5 mr-3 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
                             ) : null}
-                            {emailLoading ? 'Logging in...' : 'Login'}
+                            {signupLoading ? 'Creating account...' : 'Create account'}
                         </button>
                     </form>
 
@@ -139,7 +166,7 @@ export function LoginPage() {
                             <div className="w-full border-t border-grey-800"></div>
                         </div>
                         <div className="relative flex justify-center text-sm">
-                            <span className="px-4 bg-black text-grey-500">or sign in with</span>
+                            <span className="px-4 bg-black text-grey-500">or sign up with</span>
                         </div>
                     </div>
 
@@ -174,11 +201,11 @@ export function LoginPage() {
                         </button>
                     </div>
 
-                    {/* Sign Up Link */}
+                    {/* Login Link */}
                     <p className="text-center text-sm text-grey-500">
-                        Not registered yet?{' '}
-                        <Link to="/signup" className="text-white hover:text-grey-200 transition-colors">
-                            Create an account
+                        Already have an account?{' '}
+                        <Link to="/login" className="text-white hover:text-grey-200 transition-colors">
+                            Login
                         </Link>
                     </p>
 

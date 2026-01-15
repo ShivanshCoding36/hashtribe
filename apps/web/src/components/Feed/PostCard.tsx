@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { formatRelativeTime } from '@hashtribe/shared/utils';
-import { Heart, MessageSquare, Share2, MoreHorizontal, Trash2 } from 'lucide-react';
+import { Heart, MessageSquare, Share2, Trash2 } from 'lucide-react';
 import clsx from 'clsx';
 import { Post } from '@/stores/postStore';
 import { useAuthStore } from '@/stores/authStore';

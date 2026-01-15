@@ -2,8 +2,8 @@ import { NavLink } from 'react-router-dom';
 import { Home, Compass, Trophy, LayoutGrid, ChevronDown, Plus, Info, Shield, FileText, Briefcase } from 'lucide-react';
 import { useTribeStore } from '@/stores/tribeStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useState } from 'react';
 import clsx from 'clsx';
-import { useEffect, useState } from 'react';
 
 export function Sidebar() {
     const { tribes } = useTribeStore();

@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { Bell, Search, Plus, MessageSquare, UserCircle, LogOut, Settings } from 'lucide-react';
-import clsx from 'clsx';
+
 import logoDark from '@/components/assets/logo_dark_croped.png';
 
 export function Header() {

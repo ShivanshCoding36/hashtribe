@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface Point {
     x: number;
@@ -27,12 +27,12 @@ interface GlobeProps {
 
 export function Globe({ className = '' }: GlobeProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const mouseRef = useRef({ x: 0, y: 0 });
+
     const rotationRef = useRef({ x: 0.8, y: 0.4 });
     const velocityRef = useRef({ x: -0.0008, y: 0.0002 }); // Negative x for clockwise
     const isDraggingRef = useRef(false);
     const lastMouseRef = useRef({ x: 0, y: 0 });
-    const [coords, setCoords] = useState({ lat: "40.7128° N", lng: "74.0060° W" });
+
 
     useEffect(() => {
         const canvas = canvasRef.current;

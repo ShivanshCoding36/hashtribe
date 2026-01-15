@@ -31,11 +31,16 @@ export interface Tribe {
 }
 
 export interface TribeMember {
-    id: string;
+    id?: string; // composite key usually, but marked optional if missing
     tribe_id: string;
     user_id: string;
     role: TribeRole;
     joined_at: string;
+    users?: {
+        username: string;
+        display_name: string | null;
+        avatar_url: string | null;
+    };
 }
 
 export interface TribeWithMembership extends Tribe {

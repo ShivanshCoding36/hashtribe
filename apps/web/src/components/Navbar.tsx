@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
-import { Bell, Search, LogOut, Trophy, Hash, Compass, LayoutGrid, Settings, UserCircle } from 'lucide-react';
+import { Bell, Search, LogOut, Trophy, Compass, LayoutGrid, Settings, UserCircle, Users } from 'lucide-react';
 import clsx from 'clsx';
 import { ReactNode } from 'react';
 import logoDark from '@/components/assets/logo_dark_croped.png';
@@ -87,11 +87,11 @@ export function Navbar() {
                         {/* Navigation Links (Desktop) */}
                         {user && (
                             <div className="hidden md:flex items-center space-x-1">
-                                <NavLink to="/explore" icon={<Compass className="w-4 h-4" />}>
-                                    Explore
+                                <NavLink to="/my-tribes" icon={<Users className="w-4 h-4" />}>
+                                    My Tribes
                                 </NavLink>
-                                <NavLink to="/tribes" icon={<Hash className="w-4 h-4" />}>
-                                    Tribes
+                                <NavLink to="/tribes" icon={<Compass className="w-4 h-4" />}>
+                                    Explore Tribes
                                 </NavLink>
                                 <NavLink to="/competitions" icon={<Trophy className="w-4 h-4" />}>
                                     Challenges

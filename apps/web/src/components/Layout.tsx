@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
-import { Navbar } from './Navbar';
+import { Header } from './Header';
+import { Sidebar } from './Sidebar';
 
 interface LayoutProps {
     children: ReactNode;
@@ -7,30 +8,18 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
     return (
-        <div className="min-h-screen bg-black flex flex-col">
-            <Navbar />
-            <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full max-w-7xl">
-                {children}
-            </main>
-            <footer className="border-t border-charcoal-800 bg-charcoal-950/50 mt-auto backdrop-blur-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-                        <div className="text-grey-400 text-sm">
-                            © 2026 HashTribe. Built by developers.
-                        </div>
+        <div className="min-h-screen bg-black text-grey-200 font-sans selection:bg-white/20">
+            <Header />
 
-                        <div className="text-grey-500 font-medium text-sm tracking-wide">
-                            A nFKs Affiliate
-                        </div>
+            <div className="pt-16 flex">
+                <Sidebar />
 
-                        <div className="flex space-x-6 text-sm">
-                            <a href="#" className="text-grey-400 hover:text-white transition-colors">GitHub</a>
-                            <a href="#" className="text-grey-400 hover:text-white transition-colors">Documentation</a>
-                            <a href="#" className="text-grey-400 hover:text-white transition-colors">Community</a>
-                        </div>
+                <main className="flex-1 md:ml-64 min-h-[calc(100vh-4rem)]">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+                        {children}
                     </div>
-                </div>
-            </footer>
+                </main>
+            </div>
         </div>
     );
 }

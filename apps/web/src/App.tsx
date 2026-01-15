@@ -9,6 +9,7 @@ import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { TribesPage } from './pages/TribesPage';
 import { CreateTribePage } from './pages/CreateTribePage';
 import { TribeDetailPage } from './pages/TribeDetailPage';
+import { HomePage } from './pages/HomePage';
 
 function App() {
     const { initialize, initialized } = useAuthStore();
@@ -41,7 +42,9 @@ function App() {
                     path="/"
                     element={
                         <ProtectedRoute>
-                            <Navigate to="/tribes" replace />
+                            <Layout>
+                                <HomePage />
+                            </Layout>
                         </ProtectedRoute>
                     }
                 />

@@ -114,6 +114,11 @@ export const useTribeStore = create<TribeState>((set, get) => ({
 
     createTribe: async (data) => {
         const { generateUniqueSlug } = await import('@hashtribe/shared/utils');
+        const { useAuthStore } = await import('./authStore'); // Dynamic import to avoid circular dependency if any, or just top level
+        const user = useAuthStore.getState().user;
+
+        if (!user) throw new Error("User must be logged in to create a tribe");
+
         const slug = generateUniqueSlug(data.name);
 
         const { data: tribe, error } = await supabase
@@ -121,6 +126,7 @@ export const useTribeStore = create<TribeState>((set, get) => ({
             .insert({
                 ...data,
                 slug,
+                created_by: user.id
             })
             .select()
             .single();
@@ -128,7 +134,7 @@ export const useTribeStore = create<TribeState>((set, get) => ({
         if (error) throw error;
 
         // Refresh tribes list
-        await get().fetchTribes();
+        await get().fetchTribes(user.id);
 
         return tribe;
     },

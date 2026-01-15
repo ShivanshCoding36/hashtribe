@@ -2,29 +2,33 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTribeStore } from '@/stores/tribeStore';
 import { useAuthStore } from '@/stores/authStore';
-import { formatRelativeTime } from '@hashtribe/shared/utils';
+import { TribeCard } from '@/components/TribeCard';
 import clsx from 'clsx';
 
 export function TribesPage() {
     const { tribes, loading, fetchTribes, joinTribe, leaveTribe } = useTribeStore();
-    const { user, profile } = useAuthStore();
-    const [searchQuery, setSearchQuery] = useState('');
-    const [visibilityFilter, setVisibilityFilter] = useState<'all' | 'public' | 'private'>('all');
+    const { user } = useAuthStore();
+    const [filter, setFilter] = useState<'popular' | 'new' | 'featured' | 'all'>('all');
 
     useEffect(() => {
         fetchTribes(user?.id);
     }, [user?.id]);
 
-    const filteredTribes = tribes.filter(tribe => {
-        const matchesSearch = tribe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            tribe.description?.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesVisibility = visibilityFilter === 'all' || tribe.visibility === visibilityFilter;
-        return matchesSearch && matchesVisibility;
-    });
+    const filteredTribes = tribes
+        .sort((a, b) => {
+            switch (filter) {
+                case 'popular':
+                case 'featured': // Featured also prioritizes high membership/activity for now
+                    return (b.member_count || 0) - (a.member_count || 0);
+                case 'new':
+                    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                default:
+                    return 0; // 'all' keeps default order
+            }
+        });
 
     const handleJoinLeave = async (tribeId: string, isMember: boolean) => {
         if (!user) return;
-
         try {
             if (isMember) {
                 await leaveTribe(tribeId, user.id);
@@ -37,139 +41,64 @@ export function TribesPage() {
     };
 
     return (
-        <div className="space-y-8">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="space-y-12 pb-20">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-charcoal-800 pb-8">
                 <div>
-                    <h1 className="text-4xl font-bold text-white mb-2">Tribes</h1>
-                    <p className="text-dark-400">
-                        Discover and join developer communities
-                    </p>
+                    <h2 className="text-xs font-mono text-grey-500 mb-2 tracking-widest uppercase">Available Protocols</h2>
+                    <h1 className="text-3xl md:text-4xl font-bold text-white font-display tracking-tight flex items-center">
+                        DISCOVER_TRIBES<span className="animate-pulse text-white">_</span>
+                    </h1>
                 </div>
-                <Link to="/tribes/create" className="btn-primary">
-                    Create Tribe
-                </Link>
-            </div>
 
-            {/* Filters */}
-            <div className="card">
-                <div className="flex flex-col md:flex-row gap-4">
-                    <div className="flex-1">
-                        <input
-                            type="text"
-                            placeholder="Search tribes..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="input"
-                        />
-                    </div>
-                    <div className="flex gap-2">
+                {/* Filters (Pills) */}
+                <div className="flex bg-charcoal-900 p-1 rounded-full border border-charcoal-800 overflow-x-auto max-w-full">
+                    {(['popular', 'new', 'featured', 'all'] as const).map((f) => (
                         <button
-                            onClick={() => setVisibilityFilter('all')}
+                            key={f}
+                            onClick={() => setFilter(f)}
                             className={clsx(
-                                'px-4 py-2 rounded-lg font-medium transition-colors',
-                                visibilityFilter === 'all'
-                                    ? 'bg-primary-600 text-white'
-                                    : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
+                                'px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 whitespace-nowrap',
+                                filter === f
+                                    ? 'bg-white text-black shadow-glow-sm'
+                                    : 'text-grey-400 hover:text-white hover:bg-charcoal-800'
                             )}
                         >
-                            All
+                            {f}
                         </button>
-                        <button
-                            onClick={() => setVisibilityFilter('public')}
-                            className={clsx(
-                                'px-4 py-2 rounded-lg font-medium transition-colors',
-                                visibilityFilter === 'public'
-                                    ? 'bg-primary-600 text-white'
-                                    : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
-                            )}
-                        >
-                            Public
-                        </button>
-                        <button
-                            onClick={() => setVisibilityFilter('private')}
-                            className={clsx(
-                                'px-4 py-2 rounded-lg font-medium transition-colors',
-                                visibilityFilter === 'private'
-                                    ? 'bg-primary-600 text-white'
-                                    : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
-                            )}
-                        >
-                            Private
-                        </button>
-                    </div>
+                    ))}
                 </div>
             </div>
 
-            {/* Tribes Grid */}
+            {/* Content Grid */}
             {loading ? (
-                <div className="text-center py-12">
-                    <div className="w-12 h-12 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-dark-400">Loading tribes...</p>
+                <div className="text-center py-20">
+                    <div className="w-16 h-16 border-4 border-charcoal-700 border-t-white rounded-full animate-spin mx-auto mb-6"></div>
+                    <p className="text-grey-400 font-mono animate-pulse">INITIALIZING DATA STREAM...</p>
                 </div>
             ) : filteredTribes.length === 0 ? (
-                <div className="card text-center py-12">
-                    <p className="text-dark-400 text-lg">No tribes found</p>
-                    <p className="text-dark-500 mt-2">Try adjusting your search or filters</p>
+                <div className="text-center py-20 border border-dashed border-charcoal-800 rounded-3xl bg-charcoal-900/30">
+                    <p className="text-2xl text-white font-bold mb-2">NO SIGNALS FOUND</p>
+                    <p className="text-grey-500 font-mono">ADJUST QUERY PARAMETERS TO RETRY</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-8">
                     {filteredTribes.map((tribe) => (
-                        <div key={tribe.id} className="card-hover">
-                            <div className="flex items-start justify-between mb-4">
-                                <div className="flex-1">
-                                    <Link
-                                        to={`/tribes/${tribe.slug}`}
-                                        className="text-xl font-bold text-white hover:text-primary-400 transition-colors"
-                                    >
-                                        {tribe.name}
-                                    </Link>
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <span className={clsx(
-                                            'badge',
-                                            tribe.visibility === 'public' ? 'badge-success' : 'badge-warning'
-                                        )}>
-                                            {tribe.visibility}
-                                        </span>
-                                        {tribe.is_member && (
-                                            <span className="badge badge-primary">
-                                                {tribe.user_role === 'admin' ? 'Admin' : 'Member'}
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <p className="text-dark-300 text-sm mb-4 line-clamp-2">
-                                {tribe.description || 'No description provided'}
-                            </p>
-
-                            <div className="flex items-center justify-between text-sm text-dark-400 mb-4">
-                                <span>{tribe.member_count || 0} members</span>
-                                <span>{formatRelativeTime(tribe.created_at)}</span>
-                            </div>
-
-                            <div className="flex gap-2">
-                                <Link
-                                    to={`/tribes/${tribe.slug}`}
-                                    className="btn-secondary flex-1 text-center"
-                                >
-                                    View
-                                </Link>
-                                {tribe.visibility === 'public' && (
-                                    <button
-                                        onClick={() => handleJoinLeave(tribe.id, tribe.is_member)}
-                                        className={clsx(
-                                            'btn flex-1',
-                                            tribe.is_member ? 'btn-ghost' : 'btn-primary'
-                                        )}
-                                    >
-                                        {tribe.is_member ? 'Leave' : 'Join'}
-                                    </button>
-                                )}
-                            </div>
-                        </div>
+                        <TribeCard
+                            key={tribe.id}
+                            tribe={tribe}
+                            onJoinLeave={handleJoinLeave}
+                        />
                     ))}
+
+                    {/* Create New Tribe Card (Always last) */}
+                    <Link to="/tribes/create" className="group border-2 border-dashed border-charcoal-800 rounded-3xl p-8 flex flex-col items-center justify-center text-center hover:border-white/50 hover:bg-charcoal-900/50 transition-all duration-300 min-h-[300px]">
+                        <div className="w-16 h-16 rounded-full bg-charcoal-800 group-hover:bg-white/10 flex items-center justify-center mb-6 transition-colors">
+                            <span className="text-4xl text-grey-500 group-hover:text-white transition-colors">+</span>
+                        </div>
+                        <h3 className="text-xl font-bold text-white mb-2">INITIATE NEW PROTOCOL</h3>
+                        <p className="text-grey-500 text-sm font-mono">Create a new tribe</p>
+                    </Link>
                 </div>
             )}
         </div>

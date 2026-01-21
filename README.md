@@ -150,6 +150,70 @@ See [SCOPE.md](SCOPE.md) for the complete product vision including:
    
    The app will open at http://localhost:5173
 
+### Installation (Using Docker)
+
+### Prerequisites
+
+- **Docker** 20+
+- **Docker Compose**
+
+1. **Clone the repository**
+```
+git clone https://github.com/YOUR_USERNAME/HashTribe.git
+cd HashTribe
+```
+
+2. **Configure environment variables**
+
+Copy the example env file:
+```
+cp .env.example .env
+```
+
+Edit .env and add your Supabase credentials:
+```
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-public-anon-key
+```
+
+Only use the anon key, never the service role key in the frontend.
+
+3. **Build and run the project**
+```
+docker compose up --build
+```
+
+- Docker will build the frontend app with your .env keys
+
+- Nginx serves the production-ready app
+
+- Open your browser at:
+
+http://localhost:5173
+
+
+5. **Optional: GitHub OAuth Setup**
+
+   1. Create a GitHub OAuth App:
+
+   - Go to https://github.com/settings/developers → New OAuth App
+
+   - Set Authorization callback URL: http://localhost:54321/auth/v1/callback
+
+   - Copy Client ID and Client Secret
+
+   2. Add OAuth credentials in Supabase:
+
+   - Open Supabase Studio → Authentication → Providers → GitHub
+
+   - Enable GitHub and add your Client ID & Secret
+
+6. **Access the App**
+
+Once Docker is running, the app will be available at:
+
+http://localhost:5173
+
 ### First Login
 
 1. Click "Continue with GitHub"

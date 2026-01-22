@@ -11,6 +11,8 @@ import { CreateTribePage } from './pages/CreateTribePage';
 import { TribeDetailPage } from './pages/TribeDetailPage';
 import { TopicDetailPage } from './pages/TopicDetailPage';
 import { HomePage } from './pages/HomePage';
+import { CompetitionsPage } from './pages/CompetitionsPage';
+import { CompetitionDetailPage } from './pages/CompetitionDetailPage';
 
 function App() {
     const { initialize, initialized } = useAuthStore();
@@ -94,16 +96,22 @@ function App() {
                     }
                 />
 
-                {/* Placeholder Routes for Phase 1 */}
                 <Route
                     path="/competitions"
                     element={
                         <ProtectedRoute>
                             <Layout>
-                                <div className="card text-center py-12">
-                                    <h1 className="text-3xl font-bold text-white mb-4">Competitions</h1>
-                                    <p className="text-dark-400">Coming soon in Phase 1!</p>
-                                </div>
+                                <CompetitionsPage />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/competitions/:slug"
+                    element={
+                        <ProtectedRoute>
+                            <Layout>
+                                <CompetitionDetailPage />
                             </Layout>
                         </ProtectedRoute>
                     }

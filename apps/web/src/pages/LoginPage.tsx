@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 import { Globe } from '@/components/Globe';
 import logoDark from '@/components/assets/logo_dark.png';
 import googleIcon from '@/components/assets/playstore.svg';
@@ -103,14 +104,13 @@ export function LoginPage() {
 
                         {/* Password Input */}
                         <div className="mb-4">
-                            <label className="block text-grey-400 text-sm mb-2">Password</label>
-                            <input
-                                type="password"
+                            <PasswordInput
                                 value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                onChange={setPassword}
+                                label="Password"
                                 placeholder="Enter your password"
-                                className="w-full bg-charcoal-900 border border-grey-800 text-white rounded-lg px-4 py-3 focus:outline-none focus:border-grey-600 transition-colors placeholder-grey-600"
-                                required
+                                disabled={emailLoading || loading}
+                                autoComplete="current-password"
                             />
                         </div>
 

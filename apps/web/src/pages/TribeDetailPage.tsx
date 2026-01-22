@@ -1,19 +1,25 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTribeStore } from '@/stores/tribeStore';
 import { useAuthStore } from '@/stores/authStore';
 import { usePostStore } from '@/stores/postStore';
+import { useTopicStore } from '@/stores/topicStore';
 import { formatRelativeTime } from '@hashtribe/shared/utils';
 import { CreatePost } from '@/components/Feed/CreatePost';
 import { PostCard } from '@/components/Feed/PostCard';
+import { CreateTopic } from '@/components/Topics/CreateTopic';
+import { TopicCard } from '@/components/Topics/TopicCard';
 import clsx from 'clsx';
-import { Settings, Users, Calendar } from 'lucide-react';
+import { Settings, Users, Calendar, MessageSquare, Hash } from 'lucide-react';
 
 export function TribeDetailPage() {
     const { slug } = useParams<{ slug: string }>();
     const { currentTribe, members, loading: tribeLoading, fetchTribeBySlug, joinTribe, leaveTribe } = useTribeStore();
     const { posts, loading: postsLoading, fetchPosts, createPost, toggleLike, deletePost } = usePostStore();
+    const { topics, loading: topicsLoading, fetchTopics, createTopic, deleteTopic } = useTopicStore();
     const { user } = useAuthStore();
+    const [activeTab, setActiveTab] = useState<'posts' | 'discussions'>('posts');
+    const [showCreateTopic, setShowCreateTopic] = useState(false);
 
     useEffect(() => {
         if (slug) {
@@ -24,6 +30,7 @@ export function TribeDetailPage() {
     useEffect(() => {
         if (currentTribe?.id) {
             fetchPosts(currentTribe.id, user?.id);
+            fetchTopics(currentTribe.id);
         }
     }, [currentTribe?.id, user?.id]);
 
@@ -63,6 +70,11 @@ export function TribeDetailPage() {
     const handleCreatePost = async (content: string) => {
         if (!user || !currentTribe) return;
         await createPost(currentTribe.id, user.id, content);
+    };
+
+    const handleCreateTopic = async (title: string, content: string) => {
+        if (!user || !currentTribe) return;
+        await createTopic(currentTribe.id, user.id, title, content);
     };
 
     return (
@@ -109,47 +121,139 @@ export function TribeDetailPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-                {/* Main Feed */}
+                {/* Main Content */}
                 <div className="lg:col-span-2 space-y-4">
-                    {/* Create Post Widget */}
-                    {isMember ? (
-                        <div className="bg-black border border-charcoal-800 rounded-xl overflow-hidden">
-                            <CreatePost onSubmit={handleCreatePost} />
-                        </div>
-                    ) : (
-                        <div className="bg-charcoal-900/50 border border-charcoal-800 rounded-xl p-6 text-center">
-                            <p className="text-white font-bold mb-2">Join the Tribe to Participate</p>
-                            <p className="text-grey-400 text-sm mb-4">Become a member to create posts and interact with the community.</p>
+                    {/* Tabs */}
+                    <div className="bg-black border border-charcoal-800 rounded-xl overflow-hidden">
+                        <div className="flex border-b border-charcoal-800">
                             <button
-                                onClick={handleJoinLeave}
-                                className="px-6 py-2 rounded-full bg-white text-black font-bold text-sm hover:bg-grey-200 transition-colors"
+                                onClick={() => setActiveTab('posts')}
+                                className={clsx(
+                                    'flex-1 px-6 py-3 text-sm font-bold transition-colors flex items-center justify-center gap-2',
+                                    activeTab === 'posts'
+                                        ? 'bg-primary-600 text-white'
+                                        : 'text-grey-400 hover:text-white hover:bg-charcoal-800'
+                                )}
                             >
-                                Join Tribe
+                                <Hash className="w-4 h-4" />
+                                Posts
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('discussions')}
+                                className={clsx(
+                                    'flex-1 px-6 py-3 text-sm font-bold transition-colors flex items-center justify-center gap-2',
+                                    activeTab === 'discussions'
+                                        ? 'bg-primary-600 text-white'
+                                        : 'text-grey-400 hover:text-white hover:bg-charcoal-800'
+                                )}
+                            >
+                                <MessageSquare className="w-4 h-4" />
+                                Discussions
                             </button>
                         </div>
-                    )}
 
-                    {/* Feed */}
-                    <div className="bg-black border border-charcoal-800 rounded-xl overflow-hidden min-h-[200px]">
-                        {postsLoading && posts.length === 0 ? (
-                            <div className="text-center py-12">
-                                <div className="w-8 h-8 border-2 border-charcoal-600 border-t-white rounded-full animate-spin mx-auto"></div>
+                        {/* Tab Content */}
+                        {activeTab === 'posts' && (
+                            <div className="p-4 space-y-4">
+                                {/* Create Post Widget */}
+                                {isMember ? (
+                                    <CreatePost onSubmit={handleCreatePost} />
+                                ) : (
+                                    <div className="bg-charcoal-900/50 border border-charcoal-800 rounded-xl p-6 text-center">
+                                        <p className="text-white font-bold mb-2">Join the Tribe to Participate</p>
+                                        <p className="text-grey-400 text-sm mb-4">Become a member to create posts and interact with the community.</p>
+                                        <button
+                                            onClick={handleJoinLeave}
+                                            className="px-6 py-2 rounded-full bg-white text-black font-bold text-sm hover:bg-grey-200 transition-colors"
+                                        >
+                                            Join Tribe
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Posts Feed */}
+                                <div className="min-h-[200px]">
+                                    {postsLoading && posts.length === 0 ? (
+                                        <div className="text-center py-12">
+                                            <div className="w-8 h-8 border-2 border-charcoal-600 border-t-white rounded-full animate-spin mx-auto"></div>
+                                        </div>
+                                    ) : posts.length > 0 ? (
+                                        <div className="space-y-4">
+                                            {posts.map(post => (
+                                                <PostCard
+                                                    key={post.id}
+                                                    post={post}
+                                                    onLike={(id) => toggleLike(id, user!.id)}
+                                                    onDelete={deletePost}
+                                                />
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-12 text-grey-500">
+                                            <p className="font-mono text-sm">NO DATA DETECTED IN FEED</p>
+                                            {isMember && <p className="text-xs mt-2">Be the first to transmit a signal.</p>}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        ) : posts.length > 0 ? (
-                            <div>
-                                {posts.map(post => (
-                                    <PostCard
-                                        key={post.id}
-                                        post={post}
-                                        onLike={(id) => toggleLike(id, user!.id)}
-                                        onDelete={deletePost}
-                                    />
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="text-center py-12 text-grey-500">
-                                <p className="font-mono text-sm">NO DATA DETECTED IN FEED</p>
-                                {isMember && <p className="text-xs mt-2">Be the first to transmit a signal.</p>}
+                        )}
+
+                        {activeTab === 'discussions' && (
+                            <div className="p-4 space-y-4">
+                                {/* Create Topic Widget */}
+                                {isMember ? (
+                                    showCreateTopic ? (
+                                        <CreateTopic
+                                            onSubmit={handleCreateTopic}
+                                            onCancel={() => setShowCreateTopic(false)}
+                                        />
+                                    ) : (
+                                        <div className="text-center py-6">
+                                            <button
+                                                onClick={() => setShowCreateTopic(true)}
+                                                className="px-6 py-3 bg-primary-600 text-white font-bold rounded-full hover:bg-primary-500 transition-colors"
+                                            >
+                                                Start a Discussion
+                                            </button>
+                                        </div>
+                                    )
+                                ) : (
+                                    <div className="bg-charcoal-900/50 border border-charcoal-800 rounded-xl p-6 text-center">
+                                        <p className="text-white font-bold mb-2">Join the Tribe to Participate</p>
+                                        <p className="text-grey-400 text-sm mb-4">Become a member to start discussions in the community.</p>
+                                        <button
+                                            onClick={handleJoinLeave}
+                                            className="px-6 py-2 rounded-full bg-white text-black font-bold text-sm hover:bg-grey-200 transition-colors"
+                                        >
+                                            Join Tribe
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Topics List */}
+                                <div className="min-h-[200px]">
+                                    {topicsLoading && topics.length === 0 ? (
+                                        <div className="text-center py-12">
+                                            <div className="w-8 h-8 border-2 border-charcoal-600 border-t-white rounded-full animate-spin mx-auto"></div>
+                                        </div>
+                                    ) : topics.length > 0 ? (
+                                        <div className="space-y-4">
+                                            {topics.map(topic => (
+                                                <TopicCard
+                                                    key={topic.id}
+                                                    topic={topic}
+                                                    onDelete={isAdmin || user?.id === topic.created_by ? deleteTopic : undefined}
+                                                />
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-12 text-grey-500">
+                                            <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                                            <p className="font-mono text-sm">NO DISCUSSIONS YET</p>
+                                            {isMember && <p className="text-xs mt-2">Start the first discussion in this tribe.</p>}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
                     </div>

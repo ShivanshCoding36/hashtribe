@@ -9,6 +9,7 @@ import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { TribesPage } from './pages/TribesPage';
 import { CreateTribePage } from './pages/CreateTribePage';
 import { TribeDetailPage } from './pages/TribeDetailPage';
+import { TopicDetailPage } from './pages/TopicDetailPage';
 import { HomePage } from './pages/HomePage';
 
 function App() {
@@ -78,6 +79,16 @@ function App() {
                         <ProtectedRoute>
                             <Layout>
                                 <TribeDetailPage />
+                            </Layout>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/tribes/topics/:topicId"
+                    element={
+                        <ProtectedRoute>
+                            <Layout>
+                                <TopicDetailPage />
                             </Layout>
                         </ProtectedRoute>
                     }

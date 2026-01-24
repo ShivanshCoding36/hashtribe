@@ -8,6 +8,8 @@ interface TribeState {
     currentTribe: Tribe | null;
     members: TribeMember[];
     loading: boolean;
+    error: string | null;
+
 
     // Actions
     fetchTribes: (userId?: string) => Promise<void>;
@@ -25,47 +27,51 @@ export const useTribeStore = create<TribeState>((set, get) => ({
     currentTribe: null,
     members: [],
     loading: false,
+    error: null,
 
     fetchTribes: async (userId) => {
-        set({ loading: true });
-        try {
-            const { data: tribes, error } = await supabase
-                .from('tribes')
-                .select(`
-          *,
-          tribe_members!inner(count)
-        `)
-                .order('created_at', { ascending: false });
+    set({ loading: true, error: null });
 
-            if (error) throw error;
+    try {
+        const { data: tribes, error } = await supabase
+            .from('tribes')
+            .select(`
+                *,
+                tribe_members!inner(count)
+            `)
+            .order('created_at', { ascending: false });
 
-            // Check membership for each tribe if userId provided
-            let tribesWithMembership: TribeWithMembership[] = tribes || [];
+        if (error) throw error;
 
-            if (userId && tribes) {
-                const { data: memberships } = await supabase
-                    .from('tribe_members')
-                    .select('tribe_id, role')
-                    .eq('user_id', userId);
+        let tribesWithMembership: TribeWithMembership[] = tribes || [];
 
-                const membershipMap = new Map(
-                    memberships?.map((m: any) => [m.tribe_id, m.role]) || []
-                );
+        if (userId && tribes) {
+            const { data: memberships } = await supabase
+                .from('tribe_members')
+                .select('tribe_id, role')
+                .eq('user_id', userId);
 
-                tribesWithMembership = tribes.map((tribe: any) => ({
-                    ...tribe,
-                    member_count: tribe.tribe_members?.[0]?.count || 0,
-                    is_member: membershipMap.has(tribe.id),
-                    user_role: membershipMap.get(tribe.id) || null,
-                }));
-            }
+            const membershipMap = new Map(
+                memberships?.map((m: any) => [m.tribe_id, m.role]) || []
+            );
 
-            set({ tribes: tribesWithMembership, loading: false });
-        } catch (error) {
-            console.error('Error fetching tribes:', error);
-            set({ loading: false });
+            tribesWithMembership = tribes.map((tribe: any) => ({
+                ...tribe,
+                member_count: tribe.tribe_members?.[0]?.count || 0,
+                is_member: membershipMap.has(tribe.id),
+                user_role: membershipMap.get(tribe.id) || null,
+            }));
         }
-    },
+
+        set({ tribes: tribesWithMembership, loading: false });
+    } catch (err: any) {
+        console.error('Error fetching tribes:', err);
+        set({
+            loading: false,
+            error: err.message || 'Failed to load tribes',
+        });
+    }
+},
 
     fetchTribeBySlug: async (slug) => {
         set({ loading: true });

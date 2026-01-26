@@ -27,6 +27,7 @@ export interface Post {
 interface PostStore {
     posts: Post[];
     loading: boolean;
+    error: string | null;  
     fetchPosts: (tribeId: string, userId?: string) => Promise<void>;
     fetchFeed: (userId?: string) => Promise<void>;
     createPost: (tribeId: string, userId: string, content: string, imageUrls?: string[]) => Promise<void>;
@@ -34,100 +35,101 @@ interface PostStore {
     toggleLike: (postId: string, userId: string) => Promise<void>;
 }
 
+
 export const usePostStore = create<PostStore>((set, get) => ({
     posts: [],
     loading: false,
+      error: null,
 
     fetchPosts: async (tribeId, userId) => {
-        set({ loading: true });
-        try {
-            // Fetch posts with user details
-            const { data: postsData, error } = await supabase
-                .from('posts')
-                .select(`
-                    *,
-                    user:users!posts_user_id_fkey(username, display_name, avatar_url),
-                    tribe:tribes(name, slug, visibility)
-                `)
-                .eq('tribe_id', tribeId)
-                .order('created_at', { ascending: false });
+    set({ loading: true, error: null });
+    try {
+        const { data: postsData, error } = await supabase
+            .from('posts')
+            .select(`
+                *,
+                user:users!posts_user_id_fkey(username, display_name, avatar_url),
+                tribe:tribes(name, slug, visibility)
+            `)
+            .eq('tribe_id', tribeId)
+            .order('created_at', { ascending: false });
 
-            if (error) throw error;
+        if (error) throw error;
 
-            let posts: Post[] = postsData.map((p: any) => ({
+        let posts: Post[] = postsData.map((p: any) => ({
+            ...p,
+            user: p.user,
+            tribe: p.tribe,
+            liked_by_user: false,
+        }));
+
+        if (userId && posts.length > 0) {
+            const postIds = posts.map(p => p.id);
+            const { data: likes } = await supabase
+                .from('post_likes')
+                .select('post_id')
+                .eq('user_id', userId)
+                .in('post_id', postIds);
+
+            const likedPostIds = new Set(likes?.map((l: any) => l.post_id));
+            posts = posts.map(p => ({
                 ...p,
-                user: p.user,
-                tribe: p.tribe,
-                liked_by_user: false,
+                liked_by_user: likedPostIds.has(p.id)
             }));
-
-            // Handle likes logic...
-            if (userId && posts.length > 0) {
-                const postIds = posts.map(p => p.id);
-                const { data: likes } = await supabase
-                    .from('post_likes')
-                    .select('post_id')
-                    .eq('user_id', userId)
-                    .in('post_id', postIds);
-
-                const likedPostIds = new Set(likes?.map((l: any) => l.post_id));
-                posts = posts.map(p => ({
-                    ...p,
-                    liked_by_user: likedPostIds.has(p.id)
-                }));
-            }
-
-            set({ posts, loading: false });
-        } catch (error) {
-            console.error('Error fetching posts:', error);
-            set({ loading: false });
         }
-    },
+
+        set({ posts, loading: false });
+    } catch (err: any) {
+        console.error('Error fetching posts:', err);
+        set({ loading: false, error: err.message || 'Failed to load posts' });
+    }
+},
+
 
     fetchFeed: async (userId) => {
-        set({ loading: true });
-        try {
-            // Simple SELECT * returns all visible posts due to RLS
-            const { data: postsData, error } = await supabase
-                .from('posts')
-                .select(`
-                    *,
-                    user:users!posts_user_id_fkey(username, display_name, avatar_url),
-                    tribe:tribes(name, slug, visibility)
-                `)
-                .order('created_at', { ascending: false })
-                .limit(50);
+    set({ loading: true, error: null });
+    try {
+        const { data: postsData, error } = await supabase
+            .from('posts')
+            .select(`
+                *,
+                user:users!posts_user_id_fkey(username, display_name, avatar_url),
+                tribe:tribes(name, slug, visibility)
+            `)
+            .order('created_at', { ascending: false })
+            .limit(50);
 
-            if (error) throw error;
+        if (error) throw error;
 
-            let posts: Post[] = postsData.map((p: any) => ({
+        let posts: Post[] = postsData.map((p: any) => ({
+            ...p,
+            user: p.user,
+            tribe: p.tribe,
+            liked_by_user: false,
+        }));
+
+        if (userId && posts.length > 0) {
+            const postIds = posts.map(p => p.id);
+            const { data: likes } = await supabase
+                .from('post_likes')
+                .select('post_id')
+                .eq('user_id', userId)
+                .in('post_id', postIds);
+
+            const likedPostIds = new Set(likes?.map((l: any) => l.post_id));
+            posts = posts.map(p => ({
                 ...p,
-                user: p.user,
-                tribe: p.tribe,
-                liked_by_user: false,
+                liked_by_user: likedPostIds.has(p.id)
             }));
-
-            if (userId && posts.length > 0) {
-                const postIds = posts.map(p => p.id);
-                const { data: likes } = await supabase
-                    .from('post_likes')
-                    .select('post_id')
-                    .eq('user_id', userId)
-                    .in('post_id', postIds);
-
-                const likedPostIds = new Set(likes?.map((l: any) => l.post_id));
-                posts = posts.map(p => ({
-                    ...p,
-                    liked_by_user: likedPostIds.has(p.id)
-                }));
-            }
-
-            set({ posts, loading: false });
-        } catch (error) {
-            console.error('Error fetching feed:', error);
-            set({ loading: false });
         }
-    },
+
+        set({ posts, loading: false });
+    } catch (err: any) {
+        console.error('Error fetching feed:', err);
+        set({ loading: false, error: err.message || 'Failed to load feed' });
+    }
+},
+
 
     createPost: async (tribeId, userId, content, imageUrls = []) => {
         try {

@@ -7,6 +7,10 @@ import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { TribesPage } from './pages/TribesPage';
+import About from './pages/About';
+import Careers from './pages/CareersPage';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
 import { CreateTribePage } from './pages/CreateTribePage';
 import { TribeDetailPage } from './pages/TribeDetailPage';
 import { TopicDetailPage } from './pages/TopicDetailPage';
@@ -19,14 +23,14 @@ function App() {
 
     useEffect(() => {
         initialize();
-    }, []);
+    }, [initialize]);
 
     if (!initialized) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-dark-950">
                 <div className="text-center">
                     <div className="w-16 h-16 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-dark-400">Initializing HashTribe...</p>
+                    <p className="text-dark-400 font-mono">Initializing HashTribe...</p>
                 </div>
             </div>
         );
@@ -34,15 +38,15 @@ function App() {
 
     return (
         <Routes>
-            {/* Public Routes */}
+            {/* --- Public Auth Routes --- */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
-            {/* Redirect */}
+            {/* --- Root Redirect --- */}
             <Route path="/" element={<Navigate to="/feed" replace />} />
 
-            {/* Protected Routes */}
+            {/* --- Protected App Routes --- */}
             <Route
                 path="/feed"
                 element={
@@ -122,12 +126,13 @@ function App() {
                         <Layout>
                             <div className="card text-center py-12">
                                 <h1 className="text-3xl font-bold text-white mb-4">Leaderboard</h1>
-                                <p className="text-dark-400">Coming soon in Phase 1!</p>
+                                <p className="text-dark-400 font-mono">Coming soon in Phase 1!</p>
                             </div>
                         </Layout>
                     </ProtectedRoute>
                 }
             />
+            
             <Route
                 path="/profile/:username"
                 element={
@@ -135,23 +140,57 @@ function App() {
                         <Layout>
                             <div className="card text-center py-12">
                                 <h1 className="text-3xl font-bold text-white mb-4">Profile</h1>
-                                <p className="text-dark-400">Coming soon in Phase 1!</p>
+                                <p className="text-dark-400 font-mono">Coming soon in Phase 1!</p>
                             </div>
                         </Layout>
                     </ProtectedRoute>
                 }
             />
 
-            {/* 404 */}
+            {/* --- Public Informational Routes (Still within Layout) --- */}
+            <Route
+                path="/about"
+                element={ 
+                    <Layout>
+                        <About />
+                    </Layout>
+                }
+            />
+            <Route
+                path="/careers"
+                element={ 
+                    <Layout>
+                        <Careers />
+                    </Layout>
+                }
+            />
+            <Route
+                path="/privacy"
+                element={ 
+                    <Layout>
+                        <Privacy /> 
+                    </Layout>
+                }
+            />
+            <Route
+                path="/terms"       
+                element={
+                    <Layout>
+                        <Terms />
+                    </Layout>
+                }
+            />  
+
+            {/* --- 404 Page --- */}
             <Route
                 path="*"
                 element={
                     <Layout>
-                        <div className="card text-center py-12">
-                            <h1 className="text-4xl font-bold text-white mb-4">404</h1>
-                            <p className="text-dark-400 mb-6">Page not found</p>
-                            <a href="/feed" className="btn-primary">
-                                Go to Feed
+                        <div className="card text-center py-24 border border-charcoal-800 bg-zinc-900/20">
+                            <h1 className="text-6xl font-black text-white mb-4">404</h1>
+                            <p className="text-dark-400 mb-8 font-mono tracking-widest uppercase text-sm">Signal Lost: Page Not Found</p>
+                            <a href="/feed" className="bg-white text-black px-8 py-3 rounded-md font-bold hover:bg-zinc-200 transition-colors">
+                                Return to Feed
                             </a>
                         </div>
                     </Layout>

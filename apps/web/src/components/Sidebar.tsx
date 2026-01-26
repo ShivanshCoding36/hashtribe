@@ -11,7 +11,7 @@ export function Sidebar() {
     const [isMyTribesOpen, setIsMyTribesOpen] = useState(true);
 
     // Filter for tribes the user has joined
-    const myTribes = tribes.filter(t => t.is_member).slice(0, 5); // Limit to 5 for now
+    const myTribes = tribes.filter(t => t.is_member).slice(0, 5); 
 
     return (
         <aside className="fixed left-0 top-16 bottom-0 w-64 bg-black border-r border-charcoal-800 overflow-y-auto hidden md:flex flex-col z-40">
@@ -36,7 +36,6 @@ export function Sidebar() {
 
                     {isMyTribesOpen && (
                         <div className="space-y-1">
-                            {/* Create Tribe Item */}
                             <NavLink
                                 to="/tribes/create"
                                 className="flex items-center space-x-3 px-3 py-2 rounded-lg text-grey-400 hover:bg-charcoal-900 hover:text-white transition-colors group"
@@ -45,7 +44,6 @@ export function Sidebar() {
                                 <span className="text-sm">Create Tribe</span>
                             </NavLink>
 
-                            {/* Joined Tribes List */}
                             {myTribes.length > 0 ? (
                                 myTribes.map(tribe => (
                                     <NavLink
@@ -57,7 +55,6 @@ export function Sidebar() {
                                         )}
                                     >
                                         <div className="w-5 h-5 rounded-full bg-charcoal-700 flex-shrink-0 border border-charcoal-600 group-hover:border-white/50">
-                                            {/* Placeholder for Tribe Icon */}
                                             <div className="w-full h-full rounded-full bg-gradient-to-br from-charcoal-600 to-black"></div>
                                         </div>
                                         <span className="text-sm truncate">{tribe.name}</span>
@@ -75,10 +72,28 @@ export function Sidebar() {
             <div className="p-4 mt-auto">
                 <div className="space-y-1">
                     <h3 className="text-xs font-bold text-grey-500 uppercase tracking-wider mb-2 px-3">Resources</h3>
-                    <LinkItem label="About HashTribe" icon={<Info className="w-4 h-4" />} />
-                    <LinkItem label="Careers" icon={<Briefcase className="w-4 h-4" />} />
-                    <LinkItem label="Privacy Policy" icon={<Shield className="w-4 h-4" />} />
-                    <LinkItem label="User Terms" icon={<FileText className="w-4 h-4" />} />
+                    
+                    <LinkItem 
+                        label="About HashTribe" 
+                        icon={<Info className="w-4 h-4" />} 
+                        path="/about" 
+                    />
+                    <LinkItem 
+                        label="Careers" 
+                        icon={<Briefcase className="w-4 h-4" />} 
+                        path="/careers" 
+                    />
+                    <LinkItem 
+                        label="Privacy Policy" 
+                        icon={<Shield className="w-4 h-4" />} 
+                        path="/privacy" 
+                    />
+                    <LinkItem 
+                        label="User Terms" 
+                        icon={<FileText className="w-4 h-4" />} 
+                        path="/terms" 
+                    />
+
                     <div className="pt-4 px-3">
                         <p className="text-xs text-grey-600">
                             A <span className="text-white font-bold">nFKs</span> Affiliate
@@ -92,6 +107,8 @@ export function Sidebar() {
         </aside>
     );
 }
+
+// --- Helper Components ---
 
 function NavItem({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) {
     return (
@@ -108,11 +125,20 @@ function NavItem({ to, icon, label }: { to: string; icon: React.ReactNode; label
     );
 }
 
-function LinkItem({ label, icon }: { label: string; icon: React.ReactNode }) {
+/** * UPDATED LINKITEM 
+ * Fixed the TypeScript interface and added the 'path' prop 
+ */
+function LinkItem({ label, icon, path }: { label: string; icon: React.ReactNode; path: string }) {
     return (
-        <a href="#" className="flex items-center space-x-3 px-3 py-2 rounded-lg text-grey-500 hover:text-white hover:bg-charcoal-900 transition-colors text-sm">
+        <NavLink 
+            to={path} 
+            className={({ isActive }) => clsx(
+                "flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors text-sm",
+                isActive ? "text-white bg-charcoal-900" : "text-grey-500 hover:text-white hover:bg-charcoal-900"
+            )}
+        >
             {icon}
             <span>{label}</span>
-        </a>
+        </NavLink>
     );
 }

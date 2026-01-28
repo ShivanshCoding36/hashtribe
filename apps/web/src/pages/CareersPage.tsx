@@ -25,8 +25,8 @@ const Careers = () => {
                 <h3 className="text-xl font-bold text-white group-hover:text-blue-400 transition-colors">{job.title}</h3>
                 <p className="text-zinc-500 text-sm font-mono mt-1">{job.stack} • {job.type}</p>
               </div>
-              <button className="bg-white text-black px-6 py-2 rounded-md font-bold text-sm hover:bg-zinc-200 transition-colors">
-                Apply
+                <button className="bg-white text-black px-6 py-2 rounded-md font-bold text-sm hover:bg-zinc-200 transition-colors">
+                  Apply Now
               </button>
             </div>
           ))}

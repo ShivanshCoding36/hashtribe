@@ -6,7 +6,7 @@ const Privacy = () => {
       <div className="max-w-3xl mx-auto">
         <header className="mb-12 border-b border-zinc-800 pb-6">
           <h1 className="text-3xl font-bold text-white">Privacy Policy</h1>
-          <p className="text-sm mt-2 text-zinc-500 font-mono">HASH_VERSION: 2026.01.v1</p>
+          <p className="text-sm mt-2 text-zinc-500 font-mono">HASH_VERSION: 2026.01.v2</p>
         </header>
 
         <section className="space-y-10">

@@ -22,7 +22,7 @@ const Terms = () => {
 
           <div>
             <h2 className="text-lg font-bold text-white uppercase tracking-wider mb-3">03. Platform Usage</h2>
-            <p>HashTribe is a developer credibility platform. Spamming, harassment, or unauthorized "mining" of developer profiles is strictly prohibited.</p>
+            <p>Hash_Tribe is a developer credibility platform. Spamming, harassment, or unauthorized "mining" of developer profiles is strictly prohibited.</p>
           </div>
         </section>
       </div>

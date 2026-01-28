@@ -26,7 +26,7 @@ export function SignupPage() {
     const [strength, setStrength] = useState(0);
     const [strengthLabel, setStrengthLabel] = useState('');
 
-    const from = (location.state as any)?.from?.pathname || '/tribes';
+    const from = (location.state as any)?.from?.pathname || '/feed';
 
     useEffect(() => {
         if (user && !loading) {

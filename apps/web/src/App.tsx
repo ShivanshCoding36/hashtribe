@@ -20,7 +20,7 @@ import { CompetitionsPage } from './pages/CompetitionsPage';
 import { CompetitionDetailPage } from './pages/CompetitionDetailPage';
 
 function App() {
-    const { initialize, initialized } = useAuthStore();
+    const { initialize, initialized, user } = useAuthStore();
 
     useEffect(() => {
         initialize();
@@ -40,14 +40,11 @@ function App() {
     return (
         <Routes>
             {/* Public Routes */}
-            <Route path="/" element={<LandingPage />} />
+            <Route path="/" element={user ? <Navigate to="/feed" replace /> : <LandingPage />} />
             {/* --- Public Auth Routes --- */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
-
-            {/* --- Root Redirect --- */}
-            <Route path="/" element={<Navigate to="/feed" replace />} />
 
             {/* --- Protected App Routes --- */}
             <Route

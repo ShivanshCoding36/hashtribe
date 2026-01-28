@@ -12,7 +12,7 @@ const Privacy = () => {
         <section className="space-y-10">
           <div>
             <h2 className="text-lg font-bold text-white uppercase tracking-wider mb-3">01. Data Transmission</h2>
-            <p>HashTribe analyzes public GitHub/GitLab activity to verify developer credibility. We do not store private source code. Only metadata (commit frequency, language distribution, and PR impact) is indexed to build your profile.</p>
+            <p>Hash_Tribe analyzes public GitHub/GitLab activity to verify developer credibility. We do not store private source code. Only metadata (commit frequency, language distribution, and PR impact) is indexed to build your profile.</p>
           </div>
 
           <div>

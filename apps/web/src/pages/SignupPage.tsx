@@ -103,7 +103,7 @@ export function SignupPage() {
                         {/* Signup Header */}
                         <div>
                             <h1 className="text-3xl font-bold text-white mb-3">
-                                Create an account
+                                Create an account.
                             </h1>
                             <p className="text-grey-400 text-base">
                                 Join the world of developer collaboration and verified credibility.

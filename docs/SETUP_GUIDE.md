@@ -69,6 +69,16 @@ HashTribe relies heavily on Supabase for Auth, Database, and Row Level Security 
 4.  Copy the **Client ID** and **Client Secret** from GitHub back to Supabase.
 5.  Click **Save**.
 
+### Step 3.4: Configure Storage
+
+HashTribe uses a public storage bucket for user avatars.
+
+2.  Go to Storage in the Supabase Dashboard.
+
+3.  The bucket avatars is created automatically if you ran the SQL script in Step 4.
+
+4.  Ensure the bucket is set to Public to allow the profile images to load globally.
+
 ---
 
 ## 4. Database Schema & Policies (CRITICAL)
@@ -131,11 +141,13 @@ CREATE TABLE IF NOT EXISTS public.users (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   username TEXT UNIQUE NOT NULL,
   display_name TEXT,
+  full_name TEXT,
   bio TEXT,
   avatar_url TEXT,
   github_username TEXT,
   github_id BIGINT UNIQUE,
   devcom_score INTEGER DEFAULT 0,
+  followers_count INTEGER DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   CONSTRAINT username_format CHECK (username ~ '^[a-zA-Z0-9_-]{3,20}$')
@@ -201,6 +213,14 @@ ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.post_likes ENABLE ROW LEVEL SECURITY;
 
 -- Drop existing policies to avoid duplicates during updates
+
+DROP POLICY IF EXISTS "Users can update own profile" ON public.users;
+CREATE POLICY "Users can update own profile" 
+ON public.users 
+FOR UPDATE 
+USING (auth.uid() = id) 
+WITH CHECK (auth.uid() = id);
+
 DROP POLICY IF EXISTS "Users viewable by everyone" ON public.users;
 CREATE POLICY "Users viewable by everyone" ON public.users FOR SELECT USING (true);
 
@@ -244,14 +264,16 @@ BEGIN
   base_username := REGEXP_REPLACE(base_username, '[^a-zA-Z0-9_-]', '', 'g');
   final_username := SUBSTRING(base_username FROM 1 FOR 15) || '_' || RIGHT(NEW.id::text, 4);
 
-  INSERT INTO public.users (id, username, display_name, avatar_url, github_username, github_id)
+  INSERT INTO public.users (id, username, display_name, full_name, avatar_url, github_username, github_id, bio)
   VALUES (
     NEW.id,
     final_username,
-    NEW.raw_user_meta_data->>'full_name',
+    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', ''),
+    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', ''),
     NEW.raw_user_meta_data->>'avatar_url',
     NEW.raw_user_meta_data->>'user_name',
-    (NEW.raw_user_meta_data->>'provider_id')::BIGINT
+    (NEW.raw_user_meta_data->>'provider_id')::BIGINT,
+    'New member of the tribe'
   ) ON CONFLICT (id) DO NOTHING;
   
   RETURN NEW;
@@ -274,6 +296,14 @@ $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS add_tribe_creator ON public.tribes;
 CREATE TRIGGER add_tribe_creator AFTER INSERT ON public.tribes FOR EACH ROW EXECUTE FUNCTION add_tribe_creator_as_admin();
+
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('avatars', 'avatars', true)
+ON CONFLICT (id) DO NOTHING;
+
+CREATE POLICY "Avatar Viewable by Public" ON storage.objects FOR SELECT USING (bucket_id = 'avatars');
+CREATE POLICY "Users can upload own avatars" ON storage.objects FOR INSERT 
+WITH CHECK (bucket_id = 'avatars' AND (storage.foldername(name))[1] = auth.uid()::text);
 ```
 
 ---
@@ -288,12 +318,15 @@ CREATE TRIGGER add_tribe_creator AFTER INSERT ON public.tribes FOR EACH ROW EXEC
 - **Cause**: The user ID trying to create the tribe doesn't exist in the `public.users` table. This happens if the `on_auth_user_created` trigger wasn't active when the user signed up.
 - **Fix**: Run this SQL snippet to manually sync your user:
     ```sql
-    INSERT INTO public.users (id, username, display_name, avatar_url)
+    INSERT INTO public.users (id, username, display_name, full_name, bio, avatar_url, followers_count)
     SELECT 
       id, 
       COALESCE(raw_user_meta_data->>'user_name', 'user_' || SUBSTRING(id::text, 1, 8)),
       COALESCE(raw_user_meta_data->>'full_name', 'User'),
-      raw_user_meta_data->>'avatar_url'
+      COALESCE(raw_user_meta_data->>'full_name', 'User'), 
+      'New member of the tribe', 
+      raw_user_meta_data->>'avatar_url',
+      0
     FROM auth.users
     ON CONFLICT (id) DO NOTHING;
     ```

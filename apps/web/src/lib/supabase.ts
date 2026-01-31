@@ -196,8 +196,15 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
-        autoRefreshToken: true,
         persistSession: true,
+        autoRefreshToken: true,
         detectSessionInUrl: true,
+        storage: typeof window !== 'undefined' ? localStorage : undefined,
+        storageKey: 'supabase.auth.token',
     },
-}) as SupabaseClient<Database>;
+    global: {
+        headers: {
+            'x-application-name': 'hashtribe',
+        },
+    },
+});

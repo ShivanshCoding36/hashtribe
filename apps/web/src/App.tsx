@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './stores/authStore';
 import { Layout } from './components/Layout';
@@ -12,6 +12,7 @@ import About from './pages/About';
 import Careers from './pages/CareersPage';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
+import { ProfilePage } from './pages/ProfilePage';
 import { CreateTribePage } from './pages/CreateTribePage';
 import { TribeDetailPage } from './pages/TribeDetailPage';
 import { TopicDetailPage } from './pages/TopicDetailPage';
@@ -20,13 +21,25 @@ import { CompetitionsPage } from './pages/CompetitionsPage';
 import { CompetitionDetailPage } from './pages/CompetitionDetailPage';
 
 function App() {
-    const { initialize, initialized, user } = useAuthStore();
+    const { user, loading } = useAuthStore(state => ({
+        user: state.user,
+        loading: state.loading
+    }));
+    
+    const initialized = useAuthStore(state => state.initialized);
+    const initializeRef = useRef(false);
 
     useEffect(() => {
-        initialize();
-    }, [initialize]);
+        // Only initialize once
+        if (!initialized && !initializeRef.current) {
+            initializeRef.current = true;
+            // The store auto-initializes, but we can also call it here
+            useAuthStore.getState().initialize();
+        }
+    }, [initialized]);
 
-    if (!initialized) {
+    // Show loading state while initializing
+    if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-dark-950">
                 <div className="text-center">
@@ -132,25 +145,11 @@ function App() {
                     </ProtectedRoute>
                 }
             />
-            
-            <Route
-                path="/profile/:username"
-                element={
-                    <ProtectedRoute>
-                        <Layout>
-                            <div className="card text-center py-12">
-                                <h1 className="text-3xl font-bold text-white mb-4">Profile</h1>
-                                <p className="text-dark-400 font-mono">Coming soon in Phase 1!</p>
-                            </div>
-                        </Layout>
-                    </ProtectedRoute>
-                }
-            />
 
             {/* --- Public Informational Routes (Still within Layout) --- */}
             <Route
                 path="/about"
-                element={ 
+                element={
                     <Layout>
                         <About />
                     </Layout>
@@ -158,7 +157,7 @@ function App() {
             />
             <Route
                 path="/careers"
-                element={ 
+                element={
                     <Layout>
                         <Careers />
                     </Layout>
@@ -166,20 +165,20 @@ function App() {
             />
             <Route
                 path="/privacy"
-                element={ 
+                element={
                     <Layout>
-                        <Privacy /> 
+                        <Privacy />
                     </Layout>
                 }
             />
             <Route
-                path="/terms"       
+                path="/terms"
                 element={
                     <Layout>
                         <Terms />
                     </Layout>
                 }
-            />  
+            />
 
             {/* --- 404 Page --- */}
             <Route
@@ -194,6 +193,16 @@ function App() {
                             </a>
                         </div>
                     </Layout>
+                }
+            />
+            <Route
+                path="/profile/:username"
+                element={
+                    <ProtectedRoute>
+                        <Layout>
+                            <ProfilePage />
+                        </Layout>
+                    </ProtectedRoute>
                 }
             />
         </Routes>

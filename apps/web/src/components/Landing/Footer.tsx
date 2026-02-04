@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Github, FileText, Heart } from 'lucide-react';
+import { Github, FileText, Heart, info, notebookText } from 'lucide-react';
 
 export function Footer() {
     return (
@@ -38,6 +38,7 @@ export function Footer() {
                                 to="/"
                                 className="text-sm text-grey-400 hover:text-white transition-colors block"
                             >
+                              <Info className="w-4 h-4" />
                                 About HashTribe
                             </Link>
                             <a
@@ -59,16 +60,17 @@ export function Footer() {
                         </h3>
                         <nav className="space-y-2">
                             <a
-                                href="/"
+                                href="/privacy"
                                 className="flex items-center gap-2 text-sm text-grey-400 hover:text-white transition-colors"
                             >
                                 <FileText className="w-4 h-4" />
                                 Privacy Policy
                             </a>
                             <a
-                                href="/"
+                                href="/terms"
                                 className="text-sm text-grey-400 hover:text-white transition-colors block"
                             >
+                              <notebookText className="w-4 h-4" />
                                 Terms of Service
                             </a>
                         </nav>
@@ -79,7 +81,7 @@ export function Footer() {
                 <div className="border-t border-charcoal-800 pt-8">
                     {/* Copyright */}
                     <p className="text-xs text-grey-700 text-center">
-                        © 2026 HashTribe Inc. All rights reserved.
+                        © {new Date().getFullYear()} HashTribe Inc. All rights reserved.
                     </p>
                     <p className="text-[10px] text-grey-800 text-center mt-2">
                         A <span className="text-white font-bold">nFKs</span> Affiliate

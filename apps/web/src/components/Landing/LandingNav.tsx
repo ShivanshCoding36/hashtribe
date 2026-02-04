@@ -11,6 +11,22 @@ export function LandingNav() {
                     </span>
                 </Link>
 
+              {/* Pages */}
+                 <div className="flex items-center gap-4">
+                    <Link
+                        to="/about"
+                        className="px-4 py-2 text-sm font-medium text-grey-300 hover:text-white transition-colors"
+                    >
+                        About Us
+                    </Link>
+                   <Link
+                        to="/careers"
+                        className="px-4 py-2 text-sm font-medium text-grey-300 hover:text-white transition-colors"
+                    >
+                        Careers
+                    </Link>
+                </div>
+                
                 {/* Actions */}
                 <div className="flex items-center gap-4">
                     <Link

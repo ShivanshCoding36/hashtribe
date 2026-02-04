@@ -17,13 +17,12 @@ export function LoginPage() {
     const [emailLoading, setEmailLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const from = (location.state as any)?.from?.pathname || '/feed';
-
     useEffect(() => {
-        if (user && !loading) {
-            navigate(from, { replace: true });
-        }
-    }, [user, loading, navigate, from]);
+    if (user && !loading) {
+        navigate('/feed', { replace: true });
+    }
+}, [user, loading, navigate]);
+
 
     const handleGitHubLogin = async () => {
         try {

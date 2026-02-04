@@ -10,20 +10,18 @@ import nfksIcon from '@/components/assets/nfks_logo.png';
 export function LoginPage() {
     const { user, signInWithGitHub, signInWithGoogle, signInWithEmail, loading } = useAuthStore();
     const navigate = useNavigate();
-    const location = useLocation();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [emailLoading, setEmailLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const from = (location.state as any)?.from?.pathname || '/feed';
+   useEffect(() => {
+    if (user && !loading) {
+        navigate('/feed', { replace: true });
+    }
+}, [user, loading, navigate]);
 
-    useEffect(() => {
-        if (user && !loading) {
-            navigate(from, { replace: true });
-        }
-    }, [user, loading, navigate, from]);
 
     const handleGitHubLogin = async () => {
         try {
